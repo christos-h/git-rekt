@@ -1,0 +1,13 @@
+[package]
+name = "git-rekt"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+structopt = "0.3"
+git2 = "0.14"
+anyhow = "1.0.57"
+rand = "0.8.5"
+chrono = "0.4.19 "
