@@ -1,16 +1,11 @@
-use std::ffi::OsString;
-use std::{env, fs};
+use std::{env};
 use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::io::{Write};
 use std::path::{Path, PathBuf};
 use git2::{Commit, ObjectType, Repository, Signature, Time};
 use structopt::StructOpt;
 use anyhow::Result;
 use rand::Rng;
-
-/// 1. git init $PWD/name
-/// 2. make lot's of (adds + commit) at different timestamps (say going back 5 years)
-/// 3. we can start with 1 per day, then we'll randomise once we can do that successfully
 
 static SECONDS_IN_YEAR: i64 = 86400 * 365;
 
@@ -26,8 +21,8 @@ fn find_last_commit(repo: &Repository) -> Result<Commit, git2::Error> {
 fn rekt(args: Args) -> Result<()> {
     let path = env::current_dir()?.join(&args.repo_name);
     let repo = Repository::init(&path)?;
-    let name = args.username.unwrap_or_else(|| unimplemented!());
-    let email = args.email.unwrap_or_else(|| unimplemented!());
+    let name = args.username;
+    let email = args.email;
 
     let mut index = repo.index()?;
 
@@ -38,7 +33,7 @@ fn rekt(args: Args) -> Result<()> {
 
     let mut rng = rand::thread_rng();
 
-    while ts < chrono::Utc::now().timestamp()  {
+    while ts < chrono::Utc::now().timestamp() {
         let times_per_day = rng.gen_range(1..10);
         for _ in 1..times_per_day {
             let rand_bytes: [u8; 4] = rng.gen();
@@ -50,7 +45,7 @@ fn rekt(args: Args) -> Result<()> {
             let signature = Signature::new(
                 &name,
                 &email,
-                &Time::new(ts,0)
+                &Time::new(ts, 0),
             )?;
 
             let oid = index.write_tree()?;
@@ -65,17 +60,17 @@ fn rekt(args: Args) -> Result<()> {
                         &signature,
                         "lmao",
                         &tree,
-                        &[&commit]
+                        &[&commit],
                     )?;
-                },
+                }
                 Err(_) => {
                     repo.commit(
                         Some("HEAD"),
                         &signature,
                         &signature,
-                        "lmao",
+                        "git rekt",
                         &tree,
-                        &[]
+                        &[],
                     )?;
                 }
             };
@@ -86,16 +81,14 @@ fn rekt(args: Args) -> Result<()> {
     Ok(())
 }
 
-
-// gitrekt <path> --no-life
 #[derive(StructOpt, Debug)]
 struct Args {
     #[structopt()]
     repo_name: PathBuf,
     #[structopt(long)]
-    username: Option<String>,
+    username: String,
     #[structopt(long)]
-    email: Option<String>,
+    email: String,
     #[structopt(long, default_value = "5")]
-    years: i64
+    years: i64,
 }
